@@ -1,0 +1,46 @@
+---
+kind: Service # use service to talk to a pod
+apiVersion: v1
+metadata:
+    name: welcomeservice
+    namespace: non-istio
+    labels:
+      app: welcome
+spec:
+    selector:
+        app: welcome
+    ports:
+        - protocol: "TCP"
+          targetPort: 8080 # the port to forward traffic to inside the pod to the container
+          nodePort: 30002 # port to access the cluster
+          port: 8081 # target port 8081 on any pod with welcome. -> pods use this to access this service 
+    type: LoadBalancer
+        
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: welcome-deployment #name of the deployment
+    namespace: non-istio
+spec:
+    minReadySeconds: 5
+    replicas: 2 # five container that should run in our desired state
+    selector:
+        matchLabels:
+            app: welcome
+    template:
+        metadata:
+            labels:
+                app: welcome
+        spec: #specifications for the pod
+            imagePullSecrets: # secret to use to pull from docker hub
+            #kubectl create secret docker-registry <name> --docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD --docker-email=DOCKER_EMAIL
+                - name: myregkey # create key via command in shell
+            containers: # list fo containers that run in the pod
+                - name: welcome-con
+                  image: jenskaras/welcome:v3
+                  imagePullPolicy: Always
+                  ports:
+                  - containerPort: 8080 # port to expose from the container
+                    protocol: TCP
+

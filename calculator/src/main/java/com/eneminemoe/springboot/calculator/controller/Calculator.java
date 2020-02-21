@@ -6,12 +6,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Random;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 @RestController
 public class Calculator {
 
+    private static final Logger logger = Logger.getLogger(Calculator.class.getName());
+    private int rand=0;
     @GetMapping("/add")
     public String add(@RequestParam(value = "add1", defaultValue = "0") String addOne,@RequestParam(value = "add2", defaultValue = "0") String addTwo){
         return String.valueOf(Integer.getInteger(addOne) + Integer.getInteger(addTwo));
@@ -24,11 +28,8 @@ public class Calculator {
 
     @GetMapping("/random")
     public String random(){
-        Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-        logger.setLevel(Level.ALL);
-        int rand = 0;
-        rand = new Random().nextInt(101);
-        logger.log(Level.FINE, "Calcualted random : " + Integer.toString(rand));
+        rand = new Random().nextInt(10000);
+        logger.log(Level.INFO, "Calculated random : " + Integer.toString(rand) );
         return String.valueOf(rand);
     }
 
