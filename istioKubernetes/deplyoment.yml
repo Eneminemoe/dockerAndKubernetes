@@ -1,0 +1,86 @@
+############################################################################################
+# Deployment for kubernetes cluster with istio
+############################################################################################
+kind: Service
+apiVersion: v1
+metadata:
+    name: welcomeservice
+    labels:
+        app: welcome
+        service: welcomeservice
+spec:
+    selector:
+        app: welcome
+    ports:
+        - protocol: "TCP"     
+          targetPort: 8080 # the port to forward traffic to inside the pod     
+          port: 8081 # port to access pod from inside the cluster
+        
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: welcome-deployment #name of the deployment
+spec:
+    minReadySeconds: 5
+    replicas: 3 # five container that should run in our desired state
+    selector:
+        matchLabels:
+            app: welcome
+    template:
+        metadata:
+            labels:
+                app: welcome
+        spec:
+            imagePullSecrets:
+            #kubectl create secret docker-registry <name> --docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD --docker-email=DOCKER_EMAIL
+                - name: myregkey # create key via command in shell
+            containers:
+                - name: welcome-container
+                  image: jenskaras/welcome:v3
+                  imagePullPolicy: Always
+                  ports:
+                  - containerPort: 8081 # port to expose on the
+                    protocol: TCP #this is redundant as tcp is default if none is apllied
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: calcservice #use this to talk to the calc application
+spec:
+    selector: # target of this service
+         app: calc
+    ports:
+        - protocol: "TCP" 
+          targetPort: 8080 # the port to forward traffic to inside the pod
+          port: 8080 # port to access from inside the cluster
+    #type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: calc-deployment #name of the deployment
+spec:
+    minReadySeconds: 5
+    replicas: 3 # five container that should run in our desired state
+    selector:
+        matchLabels:
+            app: calc
+    template:
+        metadata:
+            labels:
+                app: calc
+        spec:
+            imagePullSecrets:
+            #kubectl create secret docker-registry <name> --docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD --docker-email=DOCKER_EMAIL
+              - name: myregkey # create key via command in shel
+            containers:
+                - name: calc-container
+                  image: jenskaras/welcome:calculatorV1
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 8080
+                        protocol: TCP
+

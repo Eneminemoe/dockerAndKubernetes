@@ -1,0 +1,15 @@
+#
+# This file enables mTLS for servie to service communication
+# It shows only which services want encrypted traffic . The sending service don't know which service expect encrypted traffic
+kind: "Policy"
+apiVersion: "authentication.istio.io/v1alpha1"
+metadata:
+  name: "calcservices-mtls-enable"
+  namespace: "default"
+spec:
+  targets:
+  - name: calcservice
+  peers:
+  - mtls: {}
+
+# To enable a service to send trafficc encrypted a destination rule has to be established
